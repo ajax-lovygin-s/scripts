@@ -39,7 +39,7 @@ def send_file(source: Path, user: str, host: str, destination: Path, password: s
 
     command = f'/bin/bash -c "{command}"'
     with spawn(command) as task:
-        task.expect(f'{user}@{host} password:')
+        task.expect(f"{user}@{host}'s password:")
         task.sendline(password)
         task.expect(EOF)
 
@@ -53,10 +53,8 @@ def main() -> None:
         while True:
             send_file(
                 source=source,
-                destination=Path('/tmp'),
-                user='root',
-                password='welcome-to-ajax',
-                host='192.168.0.248'
+                host='192.168.0.248', destination=Path('/tmp'),
+                user='root', password='welcome-to-ajax'
             )
     except KeyboardInterrupt:
         print('stop network activity')
