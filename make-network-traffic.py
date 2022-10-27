@@ -2,7 +2,11 @@ from pathlib import Path
 from random import choice
 from string import ascii_uppercase, digits
 
+from click import command, option
 from pexpect import spawn, EOF
+
+
+DEFAULT_CHUNK_SIZE = 10*1024*1024
 
 
 def generate_random_string(size: int = 1024, allowed_chars: str = ascii_uppercase + digits) -> str:
@@ -21,32 +25,33 @@ def generate_file(path: Path, size: int, line_length: int = 1024) -> None:
             file.write(generated_line)
 
 
-def generate_content_file(filename: Path) -> None:
-    """Generate small file (~5Mb) with trash content."""
+def generate_content_file(filename: Path, file_size: int = DEFAULT_CHUNK_SIZE) -> None:
+    """Generate small file (~<file_size>) with trash content."""
     filename.parent.mkdir(parents=True, exist_ok=True)
     if filename.exists():
         print(f'file ({filename}) is already exist and will be truncated')
 
-    file_size = 5*1024*1024
     generate_file(path=filename, size=file_size, line_length=120)
     print(f'file ({filename}) generated: size = {filename.stat().st_size}')
 
 
 def send_file(source: Path, user: str, host: str, destination: Path, password: str) -> None:
     """Send <source> file to <host>/<destination> by using scp command."""
-    command = f'scp {source} {user}@{host}:{destination}'
-    print(command)
+    cmd_line = f'scp {source} {user}@{host}:{destination}'
+    print(cmd_line)
 
-    command = f'/bin/bash -c "{command}"'
-    with spawn(command) as task:
+    cmd_line = f'/bin/bash -c "{cmd_line}"'
+    with spawn(cmd_line) as task:
         task.expect(f"{user}@{host}'s password:")
         task.sendline(password)
         task.expect(EOF)
 
 
-def main() -> None:
+@command()
+@option("--chunk-size", default=DEFAULT_CHUNK_SIZE, help='network transaction size', show_default=True)
+def main(chunk_size: int) -> None:
     source = Path(__file__).parent / '.cache' / 'to-device'
-    generate_content_file(source)
+    generate_content_file(source, file_size=chunk_size)
 
     print('starting do network activity')
     try:
