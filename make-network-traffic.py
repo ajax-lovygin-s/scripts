@@ -5,8 +5,7 @@ from string import ascii_uppercase, digits
 from click import command, option
 from pexpect import spawn, EOF
 
-
-DEFAULT_CHUNK_SIZE = 10*1024*1024
+DEFAULT_CHUNK_SIZE = 10 * 1024 * 1024
 
 
 def generate_random_string(size: int = 1024, allowed_chars: str = ascii_uppercase + digits) -> str:
